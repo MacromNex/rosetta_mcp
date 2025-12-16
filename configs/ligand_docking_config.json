@@ -1,0 +1,46 @@
+{
+  "_description": "Configuration for protein-ligand docking using PyRosetta ligand docking protocol",
+  "_source": "Extracted from examples/use_case_4_ligand_docking.py",
+  "_script": "scripts/ligand_docking.py",
+
+  "trajectories": 10,
+  "ligand_chain": null,
+  "high_res_docking": true,
+  "repack_sidechains": true,
+  "minimize": true,
+  "pymol_visualization": false,
+  "output_prefix": "ligand_docked",
+
+  "_parameter_descriptions": {
+    "trajectories": "Number of ligand docking trajectories to run",
+    "ligand_chain": "Chain ID containing the ligand (auto-detect if null)",
+    "high_res_docking": "Whether to use high-resolution docking",
+    "repack_sidechains": "Whether to repack protein sidechains around ligand",
+    "minimize": "Whether to minimize the final complex",
+    "pymol_visualization": "Enable PyMOL visualization during docking",
+    "output_prefix": "Prefix for output files"
+  },
+
+  "_usage_examples": {
+    "quick_docking": {
+      "trajectories": 5,
+      "repack_sidechains": false,
+      "minimize": false,
+      "description": "Fast docking without optimization"
+    },
+    "thorough_docking": {
+      "trajectories": 50,
+      "repack_sidechains": true,
+      "minimize": true,
+      "description": "Thorough docking with optimization"
+    },
+    "manual_ligand_chain": {
+      "ligand_chain": "L",
+      "description": "Manually specify ligand chain ID"
+    },
+    "rigid_docking": {
+      "high_res_docking": false,
+      "description": "Rigid body docking only"
+    }
+  }
+}

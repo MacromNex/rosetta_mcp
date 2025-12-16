@@ -1,0 +1,42 @@
+{
+  "_description": "Configuration for protein-protein docking using PyRosetta DockingProtocol",
+  "_source": "Extracted from examples/use_case_2_protein_docking.py",
+  "_script": "scripts/protein_docking.py",
+
+  "trajectories": 10,
+  "chain_break": null,
+  "use_centroid_stage": true,
+  "use_fullatom_stage": true,
+  "pymol_visualization": false,
+  "output_prefix": "docked",
+
+  "_parameter_descriptions": {
+    "trajectories": "Number of docking trajectories to run",
+    "chain_break": "Residue number where chain A ends (auto-detect if null)",
+    "use_centroid_stage": "Whether to use centroid (low-resolution) docking stage",
+    "use_fullatom_stage": "Whether to use fullatom (high-resolution) docking stage",
+    "pymol_visualization": "Enable PyMOL visualization during docking",
+    "output_prefix": "Prefix for output files"
+  },
+
+  "_usage_examples": {
+    "quick_docking": {
+      "trajectories": 5,
+      "use_centroid_stage": false,
+      "description": "Fast docking using only fullatom stage"
+    },
+    "thorough_docking": {
+      "trajectories": 50,
+      "description": "Thorough docking with many trajectories"
+    },
+    "two_stage_docking": {
+      "use_centroid_stage": true,
+      "use_fullatom_stage": true,
+      "description": "Full two-stage docking protocol"
+    },
+    "manual_chain_break": {
+      "chain_break": 150,
+      "description": "Manually specify chain break position"
+    }
+  }
+}

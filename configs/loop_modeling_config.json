@@ -1,0 +1,54 @@
+{
+  "_description": "Configuration for loop modeling using PyRosetta loop reconstruction protocol",
+  "_source": "Extracted from examples/use_case_3_loop_modeling.py",
+  "_script": "scripts/loop_modeling.py",
+
+  "loop_start": null,
+  "loop_end": null,
+  "trajectories": 10,
+  "cycles_low": 100,
+  "cycles_high": 50,
+  "temperature": 2.0,
+  "pymol_visualization": false,
+  "output_prefix": "loop_modeled",
+
+  "_parameter_descriptions": {
+    "loop_start": "Starting residue number of the loop (required)",
+    "loop_end": "Ending residue number of the loop (required)",
+    "trajectories": "Number of loop modeling trajectories to run",
+    "cycles_low": "Number of cycles for centroid (low-resolution) stage",
+    "cycles_high": "Number of cycles for fullatom (high-resolution) stage",
+    "temperature": "Monte Carlo temperature (kT) for acceptance criterion",
+    "pymol_visualization": "Enable PyMOL visualization during modeling",
+    "output_prefix": "Prefix for output files"
+  },
+
+  "_usage_examples": {
+    "short_loop": {
+      "loop_start": 10,
+      "loop_end": 15,
+      "trajectories": 20,
+      "description": "Model a short loop (6 residues)"
+    },
+    "long_loop": {
+      "loop_start": 50,
+      "loop_end": 65,
+      "trajectories": 50,
+      "cycles_low": 200,
+      "cycles_high": 100,
+      "description": "Model a long loop (16 residues) with more sampling"
+    },
+    "quick_modeling": {
+      "trajectories": 5,
+      "cycles_low": 50,
+      "cycles_high": 25,
+      "description": "Fast loop modeling for testing"
+    },
+    "thorough_modeling": {
+      "trajectories": 100,
+      "cycles_low": 500,
+      "cycles_high": 200,
+      "description": "Thorough loop modeling for difficult cases"
+    }
+  }
+}

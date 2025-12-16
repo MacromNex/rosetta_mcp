@@ -1,0 +1,61 @@
+{
+  "_description": "Default configuration template for MCP Rosetta scripts",
+  "_version": "1.0.0",
+  "_created": "2025-12-15",
+
+  "general": {
+    "pymol_visualization": false,
+    "output_prefix": "rosetta_output",
+    "temperature": 2.0
+  },
+
+  "sampling": {
+    "trajectories": 10,
+    "cycles": 100,
+    "low_res_cycles": 100,
+    "high_res_cycles": 50
+  },
+
+  "optimization": {
+    "minimize": true,
+    "repack_sidechains": true,
+    "repack_radius": 8.0,
+    "use_cartesian": false
+  },
+
+  "scoring": {
+    "score_function": "ref2015",
+    "interface_weight": 1.0,
+    "repulsive_weight": 0.1
+  },
+
+  "_usage_notes": [
+    "This file provides default values for all MCP Rosetta scripts",
+    "Individual script configs override these defaults",
+    "Use script-specific configs for production runs",
+    "Adjust trajectories and cycles based on available compute time"
+  ],
+
+  "_script_specific_overrides": {
+    "protein_refinement": {
+      "config_file": "protein_refinement_config.json",
+      "key_parameters": ["trajectories", "cycles", "temperature"]
+    },
+    "protein_docking": {
+      "config_file": "protein_docking_config.json",
+      "key_parameters": ["trajectories", "chain_break"]
+    },
+    "loop_modeling": {
+      "config_file": "loop_modeling_config.json",
+      "key_parameters": ["loop_start", "loop_end", "trajectories"]
+    },
+    "ligand_docking": {
+      "config_file": "ligand_docking_config.json",
+      "key_parameters": ["trajectories", "ligand_chain"]
+    },
+    "ddg_calculations": {
+      "config_file": "ddg_calculations_config.json",
+      "key_parameters": ["mutations", "repack_radius"]
+    }
+  }
+}

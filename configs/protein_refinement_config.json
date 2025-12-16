@@ -1,0 +1,36 @@
+{
+  "_description": "Configuration for protein structure refinement using PyRosetta Relax protocol",
+  "_source": "Extracted from examples/use_case_1_protein_refinement.py",
+  "_script": "scripts/protein_refinement.py",
+
+  "trajectories": 5,
+  "cycles": 100,
+  "temperature": 2.0,
+  "pymol_visualization": false,
+  "output_prefix": "refined",
+
+  "_parameter_descriptions": {
+    "trajectories": "Number of refinement trajectories to run",
+    "cycles": "Number of Monte Carlo cycles per trajectory",
+    "temperature": "Monte Carlo temperature (kT) for acceptance criterion",
+    "pymol_visualization": "Enable PyMOL visualization during refinement",
+    "output_prefix": "Prefix for output files"
+  },
+
+  "_usage_examples": {
+    "quick_refinement": {
+      "trajectories": 2,
+      "cycles": 50,
+      "description": "Fast refinement for testing"
+    },
+    "thorough_refinement": {
+      "trajectories": 20,
+      "cycles": 500,
+      "description": "Thorough refinement for publication quality"
+    },
+    "high_temperature": {
+      "temperature": 5.0,
+      "description": "Higher temperature for escaping local minima"
+    }
+  }
+}

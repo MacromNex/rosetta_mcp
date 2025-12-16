@@ -1,0 +1,52 @@
+{
+  "_description": "Configuration for ddG (ΔΔG) calculations using PyRosetta for stability analysis",
+  "_source": "Extracted from examples/use_case_5_ddg_calculations.py",
+  "_script": "scripts/ddg_calculations.py",
+
+  "mutations": [],
+  "trajectories": 5,
+  "repack_radius": 8.0,
+  "minimize": true,
+  "use_cartesian": false,
+  "temperature": 2.0,
+  "output_prefix": "ddg",
+
+  "_parameter_descriptions": {
+    "mutations": "List of mutations in format ['A10G', 'B15L'] (empty list for CLI input)",
+    "trajectories": "Number of trajectories per mutation (currently fixed at 1)",
+    "repack_radius": "Radius around mutation for sidechain repacking (Angstroms)",
+    "minimize": "Whether to minimize the structure after mutation",
+    "use_cartesian": "Whether to use Cartesian minimization (vs torsional)",
+    "temperature": "Monte Carlo temperature for acceptance criterion",
+    "output_prefix": "Prefix for output files"
+  },
+
+  "_usage_examples": {
+    "single_mutation": {
+      "mutations": ["A10G"],
+      "description": "Calculate ddG for a single mutation"
+    },
+    "multiple_mutations": {
+      "mutations": ["A10G", "B15L", "C20V"],
+      "description": "Calculate ddG for multiple mutations"
+    },
+    "large_repack": {
+      "repack_radius": 12.0,
+      "description": "Use larger repacking radius for buried mutations"
+    },
+    "no_minimize": {
+      "minimize": false,
+      "description": "Skip minimization for speed"
+    },
+    "cartesian_minimize": {
+      "use_cartesian": true,
+      "description": "Use Cartesian minimization for better accuracy"
+    },
+    "interface_mutations": {
+      "mutations": ["A10G", "A15L"],
+      "repack_radius": 10.0,
+      "minimize": true,
+      "description": "Mutations at protein-protein interface"
+    }
+  }
+}
