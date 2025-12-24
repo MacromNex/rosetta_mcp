@@ -1,6 +1,6 @@
 # Rosetta MCP
 
-> Molecular modeling and protein design tools powered by PyRosetta and integrated with Claude Code through the Model Context Protocol (MCP)
+> Model Control Protocol (MCP) server for Rosetta molecular modeling and protein design suite
 
 ## Table of Contents
 - [Overview](#overview)
@@ -18,16 +18,16 @@
 
 ## Overview
 
-The Rosetta MCP provides comprehensive molecular modeling capabilities through PyRosetta, offering both standalone scripts and MCP integration for use with Claude Code and other AI assistants. This toolkit enables protein structure refinement, protein-protein docking, loop modeling, ligand docking, and stability analysis.
+The Rosetta MCP server provides easy access to Rosetta's powerful molecular modeling and protein design tools through a modern Model Control Protocol interface. It enables protein structure refinement, protein-protein docking, loop modeling, ligand docking, and stability analysis (ΔΔG calculations) via both synchronous and asynchronous APIs.
 
 ### Features
-- **Protein Structure Refinement**: High-resolution structure optimization using Rosetta Relax protocol
-- **Protein-Protein Docking**: Rigid-body docking for predicting protein complexes
-- **Loop Modeling**: Reconstruct missing or flexible loop regions
-- **Ligand Docking**: Protein-ligand complex optimization with interface scoring
-- **Stability Analysis**: ΔΔG calculations for mutation effects
-- **Batch Processing**: Submit multiple structures for concurrent processing
-- **Job Management**: Asynchronous execution with status tracking and log monitoring
+- **Dual API Design**: Sync tools for quick analysis (<10 min), Submit API for long-running tasks (>10 min)
+- **Comprehensive Protein Modeling**: Structure refinement, docking, loop modeling, ligand binding, stability analysis
+- **Robust Error Handling**: Graceful PyRosetta dependency management with clear error messages
+- **Job Management**: Full lifecycle tracking for long-running computational jobs
+- **Batch Processing**: Support for processing multiple structures simultaneously
+- **Demo Mode**: Built-in test data generation for immediate evaluation
+- **Claude Code & Gemini CLI**: Ready integration with modern AI development environments
 
 ### Directory Structure
 ```
@@ -35,7 +35,7 @@ The Rosetta MCP provides comprehensive molecular modeling capabilities through P
 ├── README.md               # This file
 ├── env/                    # Conda environment
 ├── src/
-│   └── server.py           # MCP server (12 tools)
+│   └── server.py           # MCP server (14 tools)
 ├── scripts/
 │   ├── protein_refinement.py      # Structure refinement
 │   ├── protein_docking.py         # Protein-protein docking
@@ -44,10 +44,10 @@ The Rosetta MCP provides comprehensive molecular modeling capabilities through P
 │   ├── ddg_calculations.py        # ΔΔG stability analysis
 │   └── lib/                       # Shared utilities
 ├── examples/
-│   └── data/                      # Demo structures (8 files)
-├── configs/                       # Configuration files (6 configs)
-├── jobs/                          # Job execution directory
-└── repo/                          # Original Rosetta repository
+│   └── data/               # Demo data (7 PDB files, ~313 KB)
+├── configs/                # Configuration files
+├── jobs/                   # Job execution directory
+└── reports/                # Documentation and test results
 ```
 
 ---
@@ -59,7 +59,9 @@ The Rosetta MCP provides comprehensive molecular modeling capabilities through P
 - Python 3.10+
 - PyRosetta license (academic or commercial - optional for demo mode)
 
-### Step 1: Create Environment
+### Create Environment
+
+Please strictly follow the information in `reports/step3_environment.md` to obtain the procedure to setup the environment. The complete workflow is shown below:
 
 ```bash
 # Navigate to the MCP directory
@@ -72,19 +74,17 @@ mamba create -p ./env python=3.10 -y
 # Activate environment
 mamba activate ./env
 # or: conda activate ./env
-```
 
-### Step 2: Install Dependencies
-
-```bash
-# Install Python dependencies
-pip install fastmcp loguru click pandas numpy tqdm biopython matplotlib
+# Install Dependencies
+mamba run -p ./env pip install numpy pandas loguru click tqdm
+mamba run -p ./env pip install --force-reinstall --no-cache-dir fastmcp
+mamba run -p ./env pip install biopython matplotlib
 
 # Install MCP dependencies (if not already installed)
-pip install fastmcp loguru
+pip install fastmcp loguru --ignore-installed
 ```
 
-### Step 3: Install PyRosetta (Optional)
+### PyRosetta Installation (Optional)
 
 PyRosetta requires a license from RosettaCommons:
 
@@ -96,17 +96,7 @@ conda install -c rosettacommons pyrosetta
 conda install -c rosettacommons/label/commercial pyrosetta
 ```
 
-**Note**: All scripts work in demo mode without PyRosetta and provide clear installation instructions.
-
-### Step 4: Verify Installation
-
-```bash
-# Test imports without PyRosetta
-python -c "import sys; sys.path.insert(0, 'src'); from server import mcp; print(f'Found {len(mcp.get_name_to_tool_map())} tools')"
-
-# Test script functionality
-python scripts/protein_refinement.py --help
-```
+**Note:** All scripts work in demo mode without PyRosetta and provide clear installation instructions when needed.
 
 ---
 
@@ -120,9 +110,9 @@ You can use the scripts directly without MCP for local processing.
 |--------|-------------|---------|
 | `scripts/protein_refinement.py` | Structure refinement using Relax protocol | See below |
 | `scripts/protein_docking.py` | Protein-protein docking | See below |
-| `scripts/loop_modeling.py` | Loop reconstruction with CCD closure | See below |
-| `scripts/ligand_docking.py` | Protein-ligand docking optimization | See below |
-| `scripts/ddg_calculations.py` | ΔΔG stability calculations | See below |
+| `scripts/loop_modeling.py` | Loop reconstruction | See below |
+| `scripts/ligand_docking.py` | Protein-ligand docking | See below |
+| `scripts/ddg_calculations.py` | ΔΔG stability analysis | See below |
 
 ### Script Examples
 
@@ -144,11 +134,12 @@ python scripts/protein_refinement.py --demo --trajectories 2 --cycles 10
 ```
 
 **Parameters:**
-- `--input, -i`: Input PDB file (required)
-- `--output, -o`: Results output file (default: auto-generated)
+- `--input, -i`: Input PDB file path (required)
+- `--output, -o`: Output JSON file path (default: auto-generated)
 - `--trajectories, -n`: Number of refinement trajectories (default: 5)
 - `--cycles, -c`: Monte Carlo cycles per trajectory (default: 100)
-- `--temperature, -t`: MC temperature (default: 2.0)
+- `--temperature, -t`: Monte Carlo temperature (default: 2.0)
+- `--config`: Configuration file (optional)
 
 #### Protein-Protein Docking
 
@@ -163,9 +154,10 @@ python scripts/protein_docking.py --demo --trajectories 5
 ```
 
 **Parameters:**
-- `--input, -i`: Protein complex PDB file (required)
+- `--input, -i`: PDB file with both protein chains (required)
 - `--trajectories, -n`: Number of docking trajectories (default: 10)
-- `--chain_break, -c`: Residue where chain A ends (auto-detect if not provided)
+- `--chain_break, -c`: Residue number where chain A ends (auto-detect)
+- `--output, -o`: Output file path (optional)
 
 #### Loop Modeling
 
@@ -199,8 +191,8 @@ python scripts/ligand_docking.py --demo --trajectories 5
 ```
 
 **Parameters:**
-- `--input, -i`: Protein-ligand complex PDB file (required)
-- `--ligand_chain, -l`: Ligand chain ID (auto-detect if not provided)
+- `--input, -i`: PDB file with protein-ligand complex (required)
+- `--ligand_chain, -l`: Ligand chain ID (auto-detect if not specified)
 - `--trajectories, -n`: Number of docking trajectories (default: 10)
 
 #### ΔΔG Calculations
@@ -219,7 +211,7 @@ python scripts/ddg_calculations.py --demo --mutations "10G,15A"
 - `--input, -i`: Input PDB file (required)
 - `--mutations, -m`: Mutations in format "A10G,B15L" or "10G,15L" (required)
 - `--trajectories, -n`: Number of trajectories (default: 5)
-- `--repack_radius, -r`: Repacking radius in Angstroms (default: 8.0)
+- `--repack_radius, -r`: Sidechain repacking radius in Å (default: 8.0)
 
 ---
 
@@ -352,14 +344,16 @@ gemini
 
 ## Available Tools
 
-### Quick Operations (Synchronous API)
+### Quick Operations (Sync API)
 
 These tools return results immediately (< 10 minutes):
 
 | Tool | Description | Parameters |
 |------|-------------|------------|
-| `refine_protein_structure` | Fast structure refinement | `input_file`, `trajectories`, `cycles`, `temperature`, `output_file` |
-| `calculate_ddg` | ΔΔG stability analysis | `input_file`, `mutations`, `trajectories`, `repack_radius`, `minimize`, `output_file` |
+| `refine_protein_structure` | Fast protein refinement | `input_file`, `trajectories`, `cycles`, `temperature` |
+| `calculate_ddg` | Mutation stability analysis | `input_file`, `mutations`, `trajectories`, `repack_radius` |
+| `validate_pdb_structure` | PDB file validation | `input_file` |
+| `list_example_structures` | List available demo files | None |
 
 ### Long-Running Tasks (Submit API)
 
@@ -367,28 +361,21 @@ These tools return a job_id for tracking (> 10 minutes):
 
 | Tool | Description | Parameters |
 |------|-------------|------------|
-| `submit_protein_docking` | Protein-protein docking | `input_file`, `trajectories`, `chain_break`, `use_centroid_stage`, `use_fullatom_stage`, `output_dir`, `job_name` |
-| `submit_loop_modeling` | Loop reconstruction | `input_file`, `loop_start`, `loop_end`, `trajectories`, `use_centroid_stage`, `use_fullatom_stage`, `output_dir`, `job_name` |
-| `submit_ligand_docking` | Protein-ligand docking | `input_file`, `ligand_chain`, `trajectories`, `perturbation_cycles`, `repack_sidechains`, `minimize_final`, `output_dir`, `job_name` |
-| `submit_large_refinement` | Large-scale refinement | `input_file`, `trajectories`, `cycles`, `temperature`, `output_dir`, `job_name` |
-| `submit_batch_refinement` | Batch processing | `input_files`, `trajectories`, `cycles`, `temperature`, `output_dir`, `job_name` |
+| `submit_protein_docking` | Protein-protein docking | `input_file`, `trajectories`, `chain_break` |
+| `submit_loop_modeling` | Loop reconstruction | `input_file`, `loop_start`, `loop_end`, `trajectories` |
+| `submit_ligand_docking` | Protein-ligand docking | `input_file`, `ligand_chain`, `trajectories` |
+| `submit_large_refinement` | Large-scale refinement | `input_file`, `trajectories`, `cycles` |
+| `submit_batch_refinement` | Batch structure refinement | `input_files`, `trajectories`, `cycles` |
 
 ### Job Management Tools
 
 | Tool | Description |
 |------|-------------|
-| `get_job_status` | Check job progress and status |
-| `get_job_result` | Get completed job results |
-| `get_job_log` | View execution logs with tail option |
+| `get_job_status` | Check job progress |
+| `get_job_result` | Get results when completed |
+| `get_job_log` | View execution logs |
 | `cancel_job` | Cancel running job |
-| `list_jobs` | List all jobs with optional status filter |
-
-### Utility Tools
-
-| Tool | Description |
-|------|-------------|
-| `validate_pdb_structure` | Validate PDB format and compatibility |
-| `list_example_structures` | List available demo structures |
+| `list_jobs` | List all jobs |
 
 ---
 
@@ -509,16 +496,16 @@ Track the progress and get results when complete
 
 The `examples/data/` directory contains sample data for testing:
 
-| File | Size | Description | Use With |
-|------|------|-------------|----------|
-| `test_in.pdb` | 157KB | General test protein structure | All tools |
-| `design_in.pdb` | 152KB | Protein design test structure | Refinement, ΔΔG |
-| `test_complex.pdb` | 802B | Two-chain complex for docking | Protein docking |
-| `test_docking.pdb` | 644B | Minimal docking test case | Protein docking |
-| `test_ligand.pdb` | 565B | Protein-ligand complex | Ligand docking |
-| `test_loop.pdb` | 956B | Structure with loop region | Loop modeling |
-| `test_input.pdb` | 403B | Minimal test structure | All tools |
-| `ZN1.params` | 528B | Zinc parameter file | Ligand docking |
+| File | Description | Size | Use With |
+|------|-------------|------|----------|
+| `test_input.pdb` | Basic test structure | 0.4 KB | All tools |
+| `test_loop.pdb` | Loop modeling test | 0.9 KB | Loop modeling |
+| `test_ligand.pdb` | Protein-ligand complex | 0.6 KB | Ligand docking |
+| `test_docking.pdb` | Protein docking test | 0.6 KB | Protein docking |
+| `test_complex.pdb` | Multi-chain complex | 0.8 KB | Docking, ddG |
+| `test_in.pdb` | Large test structure | 153.4 KB | Refinement, all tools |
+| `design_in.pdb` | Design test structure | 148.3 KB | Refinement, design |
+| `ZN1.params` | Zinc parameter file | 0.5 KB | Ligand docking |
 
 ---
 
@@ -527,27 +514,23 @@ The `examples/data/` directory contains sample data for testing:
 The `configs/` directory contains configuration templates:
 
 | Config | Description | Key Parameters |
-|--------|-------------|----------------|
-| `default_config.json` | Global template and defaults | `trajectories`, `cycles`, `temperature`, `repack_radius` |
-| `protein_refinement_config.json` | Refinement-specific settings | `trajectories`, `cycles`, `temperature` |
-| `protein_docking_config.json` | Docking protocol parameters | `trajectories`, `chain_break`, `centroid_stage` |
-| `loop_modeling_config.json` | Loop modeling settings | `loop_start`, `loop_end`, `trajectories` |
-| `ligand_docking_config.json` | Ligand optimization parameters | `trajectories`, `perturbation_cycles`, `minimize_final` |
-| `ddg_calculations_config.json` | ΔΔG calculation settings | `mutations`, `repack_radius`, `minimize` |
+|--------|-------------|---------------|
+| `default_config.json` | Global defaults template | `trajectories`, `cycles`, `temperature` |
+| `protein_refinement_config.json` | Refinement parameters | `trajectories`, `cycles`, `temperature` |
+| `protein_docking_config.json` | Docking parameters | `trajectories`, `chain_break`, `use_centroid_stage` |
+| `loop_modeling_config.json` | Loop modeling parameters | `loop_start`, `loop_end`, `trajectories` |
+| `ligand_docking_config.json` | Ligand docking parameters | `trajectories`, `ligand_chain`, `perturbation_cycles` |
+| `ddg_calculations_config.json` | ΔΔG parameters | `mutations`, `repack_radius`, `minimize` |
 
-### Example Config Usage
+### Config Example
 
-```bash
-# Use custom config file
-python scripts/protein_refinement.py \
-  --input examples/data/test_in.pdb \
-  --config configs/protein_refinement_config.json
-
-# Override config parameters via CLI
-python scripts/protein_refinement.py \
-  --input examples/data/test_in.pdb \
-  --config configs/protein_refinement_config.json \
-  --trajectories 10  # Overrides config value
+```json
+{
+  "trajectories": 5,
+  "cycles": 100,
+  "temperature": 2.0,
+  "output_prefix": "rosetta_output"
+}
 ```
 
 ---
@@ -567,7 +550,7 @@ pip install fastmcp loguru click pandas numpy tqdm biopython matplotlib
 **Problem:** Import errors
 ```bash
 # Verify installation
-python -c "import sys; sys.path.insert(0, 'src'); from server import mcp; print('Server loaded successfully')"
+python -c "import fastmcp, loguru, numpy, pandas; print('All imports successful')"
 ```
 
 ### MCP Issues
@@ -585,28 +568,28 @@ claude mcp add rosetta -- $(pwd)/env/bin/python $(pwd)/src/server.py
 **Problem:** Tools not working
 ```bash
 # Test server directly
-python src/server.py --help
-
-# Check tool availability
 python -c "
-import sys; sys.path.insert(0, 'src')
+import sys
+sys.path.append('src')
 from server import mcp
-tools = mcp.get_name_to_tool_map()
-print(f'Available tools: {list(tools.keys())}')
+print('Available tools:', list(mcp.list_tools().keys()))
 "
 ```
 
-### PyRosetta Issues
-
 **Problem:** PyRosetta not available
-- All scripts work in `--demo` mode without PyRosetta
-- Use demo mode to test functionality: `python scripts/protein_refinement.py --demo`
-- Install PyRosetta with academic or commercial license
+```bash
+# Check PyRosetta installation
+python -c "import pyrosetta; print('PyRosetta available')"
 
-**Problem:** PyRosetta license errors
-- Ensure valid license from RosettaCommons
-- Check license file location and permissions
-- Contact RosettaCommons support for license issues
+# If not available, scripts work in demo mode with helpful error messages
+```
+
+**Problem:** Connection issues
+```bash
+# Test server startup
+python src/server.py
+# Should start without errors and show "MCP Server ready"
+```
 
 ### Job Issues
 
@@ -615,24 +598,34 @@ print(f'Available tools: {list(tools.keys())}')
 # Check job directory
 ls -la jobs/
 
-# View job logs
-python -c "
-import sys; sys.path.insert(0, 'src')
-from jobs.manager import job_manager
-jobs = job_manager.list_jobs()
-print(jobs)
-"
+# View job metadata
+cat jobs/<job_id>/metadata.json
 ```
 
 **Problem:** Job failed
 ```
-Use get_job_log with job_id "<job_id>" and tail 100 to see detailed error information
+Use get_job_log with job_id "<job_id>" and tail 100 to see error details
 ```
 
-**Problem:** Out of disk space
+**Problem:** Long queue times
+```
+Use list_jobs to see all pending jobs and cancel old ones if needed
+```
+
+### File Access Issues
+
+**Problem:** File not found errors
 ```bash
-# Clean old job directories
-rm -rf jobs/*/  # Be careful - removes all job results
+# Check file paths are absolute
+ls -la examples/data/
+# Use full paths: /home/xux/Desktop/ProteinMCP/ProteinMCP/tool-mcps/rosetta_mcp/examples/data/
+```
+
+**Problem:** Permission errors
+```bash
+# Fix permissions
+chmod +x scripts/*.py
+chmod -R 755 examples/data/
 ```
 
 ---
@@ -645,55 +638,45 @@ rm -rf jobs/*/  # Be careful - removes all job results
 # Activate environment
 mamba activate ./env
 
-# Test server functionality
+# Run test suite
 python test_server.py
 
 # Test individual scripts
-python scripts/protein_refinement.py --demo --trajectories 1
-python scripts/ddg_calculations.py --demo --mutations "10G"
+python scripts/protein_refinement.py --demo
 ```
 
 ### Starting Dev Server
 
 ```bash
-# Run MCP server in dev mode
+# Run MCP server in development mode
 fastmcp dev src/server.py
 
-# Test with Claude Code dev setup
-export PYTHONPATH="$PWD/src:$PWD/scripts"
-python src/server.py
+# The server will be available at localhost:6274
 ```
 
 ### Adding New Tools
 
-1. Create script in `scripts/` following existing patterns
-2. Add tool wrapper in `src/server.py`
-3. Create config file in `configs/`
-4. Add tests and documentation
-5. Update this README
+To add new tools to the MCP server:
 
-### Performance Monitoring
-
-```bash
-# Monitor job execution
-watch -n 5 'ls -la jobs/'
-
-# Check system resources
-top -p $(pgrep -f "python.*server.py")
-
-# Monitor log files
-tail -f jobs/*/job.log
-```
+1. Create a new script in `scripts/`
+2. Add corresponding config in `configs/`
+3. Add MCP tool wrapper in `src/server.py`
+4. Test with demo mode first
+5. Update this README with new tool documentation
 
 ---
 
 ## License
 
-This project is based on the Rosetta molecular modeling suite and requires appropriate licensing for PyRosetta. The MCP integration code is provided under the MIT License.
+This project uses the Rosetta software suite. Please comply with Rosetta licensing terms:
+- Academic use: Free with registration
+- Commercial use: Requires license from RosettaCommons
 
 ## Credits
 
-- Based on [Rosetta](https://www.rosettacommons.org/) molecular modeling suite
-- PyRosetta Python interface
-- Uses [FastMCP](https://github.com/jlowin/fastmcp) for Model Context Protocol integration
-- Demo structures from Rosetta benchmark datasets
+Based on [Rosetta Commons](https://www.rosettacommons.org/) software suite.
+Original PyRosetta demos and protocols adapted for MCP integration.
+
+---
+
+**Note:** This MCP server enables AI assistants to perform sophisticated molecular modeling tasks. All tools handle PyRosetta licensing gracefully and provide demo modes for testing without the full Rosetta installation.
