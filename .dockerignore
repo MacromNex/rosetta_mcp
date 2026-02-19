@@ -1,0 +1,34 @@
+# Conda environment (rebuilt in Docker)
+env/
+
+# Job outputs
+jobs/
+
+# Results and reports
+results/
+reports/
+
+# Test artifacts
+tests/
+test_server.py
+
+# Rosetta source repo (too large, not needed at runtime)
+repo/
+
+# Git and IDE
+.git/
+.gitignore
+.vscode/
+.claude/
+.gemini/
+.pipeline/
+
+# Misc
+__pycache__/
+*.pyc
+*.swp
+*.out
+*.egg-info/
+tmp/
+claude_outputs/
+patches/

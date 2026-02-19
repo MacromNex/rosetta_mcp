@@ -103,10 +103,7 @@ PyRosetta requires a license from RosettaCommons:
 
 ```bash
 # Academic license
-conda install -c rosettacommons pyrosetta
-
-# Commercial license
-conda install -c rosettacommons/label/commercial pyrosetta
+pip install pyrosetta --find-links https://west.rosettacommons.org/pyrosetta/quarterly/release
 ```
 
 **Note:** All scripts work in demo mode without PyRosetta and provide clear installation instructions when needed.

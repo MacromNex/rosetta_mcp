@@ -1,0 +1,18 @@
+# Core MCP dependencies
+fastmcp
+loguru
+click
+pandas
+numpy
+tqdm
+
+# Scientific computing
+biopython
+matplotlib
+
+# Supporting libraries (pulled in by fastmcp but pinned for reproducibility)
+pydantic
+httpx
+rich
+uvicorn
+websockets
