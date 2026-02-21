@@ -47,9 +47,13 @@ print('PyRosetta initialized and database cached')" ; \
 
 # Copy application source
 COPY src/ ./src/
+RUN chmod -R a+r /app/src/
 COPY scripts/ ./scripts/
+RUN chmod -R a+r /app/scripts/
 COPY configs/ ./configs/
+RUN chmod -R a+r /app/configs/
 COPY examples/ ./examples/
+RUN chmod -R a+r /app/examples/
 
 # Create required runtime directories
 RUN mkdir -p jobs tmp/inputs tmp/outputs
