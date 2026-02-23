@@ -56,7 +56,8 @@ COPY examples/ ./examples/
 RUN chmod -R a+r /app/examples/
 
 # Create required runtime directories
-RUN mkdir -p jobs tmp/inputs tmp/outputs
+RUN mkdir -p jobs tmp/inputs tmp/outputs results && \
+    chmod 777 /app /app/jobs /app/tmp /app/tmp/inputs /app/tmp/outputs /app/results
 
 # Verify core imports work
 RUN /app/env/bin/python -c "import fastmcp; import loguru; print('Core packages OK')"
