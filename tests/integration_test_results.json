@@ -1,0 +1,43 @@
+{
+  "test_date": "2025-12-16T10:30:46.695185",
+  "test_environment": "integration_test",
+  "tests": {
+    "file_structure": {
+      "status": "PASS",
+      "message": "All required files exist",
+      "details": {
+        "checked_files": 6
+      }
+    },
+    "server_import": {
+      "status": "FAIL",
+      "message": "Server import failed: No module named 'src'",
+      "details": {
+        "error": "No module named 'src'",
+        "type": "ModuleNotFoundError"
+      }
+    },
+    "tool_execution": {
+      "status": "FAIL",
+      "message": "Tool execution test failed: No module named 'src'",
+      "details": {
+        "error": "No module named 'src'",
+        "type": "ModuleNotFoundError"
+      }
+    },
+    "job_manager": {
+      "status": "FAIL",
+      "message": "Job manager test failed: No module named 'src'",
+      "details": {
+        "error": "No module named 'src'",
+        "type": "ModuleNotFoundError"
+      }
+    }
+  },
+  "summary": {
+    "total_tests": 4,
+    "passed": 1,
+    "failed": 3,
+    "pass_rate": "25.0%"
+  }
+}
